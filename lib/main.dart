@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,7 +54,7 @@ class _HomePageState extends State<HomePage> {
             ElevatedButton(
               onPressed: () async {
                 String battery = await NativeService.getBatteryPercentage();
-                print(battery);
+                log(battery);
               },
               child: Text("Get Battery"),
             )
