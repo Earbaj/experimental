@@ -9,7 +9,6 @@ class AuthRemoteDataSource {
 
   AuthRemoteDataSource(this._dioClient);
 
-  @override
   Future<UserModel> login(String username, String password) async {
     try {
       final response = await _dioClient.dio.post(

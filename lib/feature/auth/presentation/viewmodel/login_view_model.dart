@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:untitled1/feature/auth/domain/usecase/login_usecase.dart';
-
-import '../../domain/repository/auth_repository.dart';
 import '../state/login_state.dart';
 
 class LoginViewModel extends StateNotifier<LoginState> {
