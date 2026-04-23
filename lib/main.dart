@@ -89,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: (){
               context.goNamed("home");
             },
-            child: Text("Go Back")
+            child: Text("Go Backs")
         ),
       ),
     );
