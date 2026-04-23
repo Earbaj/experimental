@@ -15,7 +15,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0' # Or 'any' for latest stable
+          flutter-version: '3.41.7' # Or 'any' for latest stable
           channel: 'stable'
 
       # 2. Now 'flutter' commands will work
