@@ -14,7 +14,7 @@ import '../storage/token_storage.dart';
 
 // --- External & Core ---
 final dioProvider = Provider((ref) => Dio());
-final dioClientProvider = Provider((ref) => DioClient(ref.read(dioProvider)));
+final dioClientProvider = Provider((ref) => DioClient(ref.read(dioProvider),ref));
 final flutterSecureStorageProvider = Provider((ref) => const FlutterSecureStorage());
 
 // --- Data Layer ---
