@@ -22,18 +22,19 @@ class LoginScreen extends StatelessWidget {
         child: BlocConsumer<LoginBloc, LoginState>(
           // listener দিয়ে Dialog, Snackbar বা Navigation হ্যান্ডেল করা হয় (স্টেট চেঞ্জ হলে একবারই চলে)
           listener: (context, state) {
-            if (state.error != null) {
+            if (state is LoginFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.error!)),
+                SnackBar(content: Text(state.error)),
               );
             }
-            if (state.user != null) {
+            if (state is LoginSuccess) {
               // Navigate to Home Screen
-              print("Login Success: ${state.user!.firstName} ${state.user!.lastName}");
+              print("Login Success: ${state.user.firstName} ${state.user.lastName}");
             }
           },
           // builder দিয়ে UI রি-বিল্ড করা হয়
           builder: (context, state) {
+
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -51,7 +52,7 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   // লোডিং চেক করা
-                  state.isLoading
+                  state is LoginLoading
                       ? const CircularProgressIndicator()
                       : ElevatedButton(
                     onPressed: () {

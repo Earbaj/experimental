@@ -9,7 +9,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
   LoginBloc({required LoginUseCase loginUseCase})
       : _loginUseCase = loginUseCase,
-        super(LoginState.initial()) {
+        super(LoginInitial()) {
 
     // ইভেন্ট রেজিস্টার করা
     on<LoginSubmittedEvent>(_onLoginSubmitted);
@@ -20,16 +20,16 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       Emitter<LoginState> emit,
       ) async {
     // ১. লোডিং স্টেট ইমিট করা
-    emit(state.copyWith(isLoading: true, error: null));
+    emit(LoginLoading());
 
     try {
       // ২. ইউজকেস কল করা
       final user = await _loginUseCase(event.username, event.password);
       // ৩. সাকসেস স্টেট ইমিট করা
-      emit(state.copyWith(isLoading: false, user: user));
+      emit(LoginSuccess(user));
     } catch (e) {
       // ৪. এরর স্টেট ইমিট করা
-      emit(state.copyWith(isLoading: false, error: e.toString()));
+      emit(LoginFailure(e.toString()));
     }
   }
 }

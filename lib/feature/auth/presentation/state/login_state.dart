@@ -1,21 +1,17 @@
 import 'package:untitled1/feature/auth/domain/entity/user_entity.dart';
 
-class LoginState {
-  final bool isLoading;
-  final String? error;
-  final UserEntity? user;
+abstract class LoginState {}
 
-  LoginState(
-      {this.isLoading=false, this.error,this.user});
+class LoginInitial extends LoginState {}
 
-  // initial state এর জন্য একটা ফ্যাক্টরি মেথড
-  factory LoginState.initial() => LoginState();
+class LoginLoading extends LoginState {}
 
-  LoginState copyWith({bool? isLoading, String? error, UserEntity? user}) {
-    return LoginState(
-        isLoading: isLoading ?? this.isLoading,
-        error: error,
-        user: user ?? this.user
-    );
-  }
+class LoginSuccess extends LoginState {
+  final UserEntity user;
+  LoginSuccess(this.user);
+}
+
+class LoginFailure extends LoginState {
+  final String error;
+  LoginFailure(this.error);
 }
