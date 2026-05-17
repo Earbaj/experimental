@@ -8,6 +8,9 @@ class LoginState {
   LoginState(
       {this.isLoading=false, this.error,this.user});
 
+  // initial state এর জন্য একটা ফ্যাক্টরি মেথড
+  factory LoginState.initial() => LoginState();
+
   LoginState copyWith({bool? isLoading, String? error, UserEntity? user}) {
     return LoginState(
         isLoading: isLoading ?? this.isLoading,

@@ -1,81 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injectProvider.dart';
+import '../event/login_event.dart';
+import '../state/login_state.dart';
+import '../viewmodel/login_block.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
-
-  @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class LoginScreen extends StatelessWidget {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
+  LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Watch the state to react to changes (loading, error, success)
-    final loginState = ref.watch(loginProvider);
-
-    // Listen for errors to show SnackBars
-    ref.listen(loginProvider, (previous, next) {
-      if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
-        );
-      }
-      if (next.user != null) {
-        // Navigate to Home or Profile
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Login Successful!"), backgroundColor: Colors.green),
-        );
-      }
-    });
-
     return Scaffold(
-      appBar: AppBar(title: const Text("Clean Login")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: "Username (emilys)"),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Password (emilyspass)"),
-            ),
-            const SizedBox(height: 32),
+      appBar: AppBar(title: const Text('Login with BLoC')),
+      // ১. BlocProvider দিয়ে স্ক্রিনে Bloc ইনজেক্ট করা (GetIt থেকে ইন্সট্যান্স নিয়ে)
+      body: BlocProvider(
+        create: (_) => sl<LoginBloc>(),
+        child: BlocConsumer<LoginBloc, LoginState>(
+          // listener দিয়ে Dialog, Snackbar বা Navigation হ্যান্ডেল করা হয় (স্টেট চেঞ্জ হলে একবারই চলে)
+          listener: (context, state) {
+            if (state.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.error!)),
+              );
+            }
+            if (state.user != null) {
+              // Navigate to Home Screen
+              print("Login Success: ${state.user!.firstName} ${state.user!.lastName}");
+            }
+          },
+          // builder দিয়ে UI রি-বিল্ড করা হয়
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(labelText: 'Username',hintText: 'emilys'),
+                  ),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: false,
+                    decoration: const InputDecoration(labelText: 'Password',hintText: 'emilyspass'),
+                  ),
+                  const SizedBox(height: 20),
 
-            // Show loader or button
-            loginState.isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-              onPressed: () {
-                final username = _usernameController.text.trim();
-                final password = _passwordController.text.trim();
-
-                if (username.isNotEmpty && password.isNotEmpty) {
-                  // Call the ViewModel
-                  ref.read(loginProvider.notifier).login(username, password);
-                }
-              },
-              child: const Text("Login"),
-            ),
-          ],
+                  // লোডিং চেক করা
+                  state.isLoading
+                      ? const CircularProgressIndicator()
+                      : ElevatedButton(
+                    onPressed: () {
+                      // ইভেন্ট অ্যাড করা (Riverpod এর read এর মত)
+                      context.read<LoginBloc>().add(
+                        LoginSubmittedEvent(
+                          username: _usernameController.text,
+                          password: _passwordController.text,
+                        ),
+                      );
+                    },
+                    child: const Text('Login'),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

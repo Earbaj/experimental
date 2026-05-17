@@ -1,6 +1,3 @@
-
-
-
 import 'package:go_router/go_router.dart';
 import 'package:untitled1/feature/auth/presentation/view/login_page.dart';
 
@@ -16,7 +13,7 @@ final GoRouter router = GoRouter(
      GoRoute(
        name: RouteName.home,
        path: '/',
-       builder: (context, state) => const LoginScreen()
+       builder: (context, state) => LoginScreen()
      ),
      GoRoute(
          path: '/profile/:id',

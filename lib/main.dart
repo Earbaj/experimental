@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:untitled1/router.dart';
+import 'core/di/injectProvider.dart';
 
 import 'methode_channel_service.dart';
 
-void main() {
-  runApp(ProviderScope(child: const MyApp()));
+void main() async  {
+  // ADD THIS: ফ্লাটার বাইন্ডিং নিশ্চিত করা (GetIt এবং অন্যান্য asynchronous কাজের জন্য)
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // ADD THIS: GetIt ডিপেন্ডেন্সি ইনজেকশন কন্টেইনার চালু করা
+  await init();
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

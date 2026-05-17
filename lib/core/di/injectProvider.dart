@@ -1,49 +1,39 @@
+import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../feature/auth/data/datasource/auth_remote_datasource.dart';
 import '../../feature/auth/data/repositoryImpl/auth_repository_impl.dart';
 import '../../feature/auth/domain/repository/auth_repository.dart';
 import '../../feature/auth/domain/usecase/login_usecase.dart';
-import '../../feature/auth/presentation/state/login_state.dart';
-import '../../feature/auth/presentation/viewmodel/login_view_model.dart';
+import '../../feature/auth/presentation/viewmodel/login_block.dart';
 import '../config/dio_client.dart';
 import '../storage/shared_prefs.dart';
 import '../storage/token_storage.dart';
 
-// --- External & Core ---
-final dioProvider = Provider((ref) => Dio());
-final dioClientProvider = Provider((ref) => DioClient(ref.read(dioProvider)));
-final flutterSecureStorageProvider = Provider((ref) => const FlutterSecureStorage());
+final sl = GetIt.instance;
 
-// --- Data Layer ---
-final tokenStorageProvider = Provider<TokenStorage>((ref) {
-  final secureStorage = ref.watch(flutterSecureStorageProvider);
-  return SharedPref(secureStorage); // Your implementation
-});
+Future<void> init() async {
+  // ১. External (এরা কারো ওপর নির্ভরশীল নয়)
+  sl.registerLazySingleton(() => Dio());
+  sl.registerLazySingleton(() => const FlutterSecureStorage());
 
-// ADD THIS: Remote Data Source Provider
-final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
-  return AuthRemoteDataSource(ref.read(dioClientProvider));
-});
+  // ২. Core / Network Clients (এরা External-এর ওপর নির্ভরশীল)
+  // এখানে DioClient রেজিস্টার করা নিশ্চিত করুন এবং sl() দিয়ে Dio পাস করুন
+  sl.registerLazySingleton(() => DioClient(sl()));
 
-// UPDATED: Repository now takes the RemoteDataSource
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepositoryImpl(
-    ref.read(authRemoteDataSourceProvider), // Fixed the type mismatch here
-    ref.read(tokenStorageProvider),
-  );
-});
+  // ৩. Data Layer (এরা Network বা Storage এর ওপর নির্ভরশীল)
+  sl.registerLazySingleton<TokenStorage>(() => SharedPref(sl()));
 
-// --- Domain Layer ---
-// ADD THIS: UseCase Provider
-final loginUseCaseProvider = Provider((ref) {
-  return LoginUseCase(ref.read(authRepositoryProvider));
-});
+  // এখানে AuthRemoteDataSource-এর ভেতর DioClient চলে যাবে sl() এর মাধ্যমে
+  sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSource(sl()));
 
-// --- Presentation Layer ---
-// UPDATED: ViewModel now takes the UseCase instead of the Repository
-final loginProvider = StateNotifierProvider<LoginViewModel, LoginState>((ref) {
-  return LoginViewModel(ref.read(loginUseCaseProvider));
-});
+  // Repo-এর ভেতর RemoteDataSource এবং TokenStorage যাবে
+  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl(), sl()));
+
+  // ৪. Domain Layer
+  sl.registerLazySingleton(() => LoginUseCase(sl()));
+
+  // ৫. Presentation Layer (Bloc)
+  sl.registerFactory(() => LoginBloc(loginUseCase: sl()));
+}
