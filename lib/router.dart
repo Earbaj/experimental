@@ -1,6 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:untitled1/feature/auth/presentation/view/login_page.dart';
-
+import 'feature/auth/presentation/view/location_tracking_page.dart';
 import 'main.dart';
 
 class RouteName{
@@ -13,7 +12,7 @@ final GoRouter router = GoRouter(
      GoRoute(
        name: RouteName.home,
        path: '/',
-       builder: (context, state) => LoginScreen()
+       builder: (context, state) => LocationTrackingPage()
      ),
      GoRoute(
          path: '/profile/:id',

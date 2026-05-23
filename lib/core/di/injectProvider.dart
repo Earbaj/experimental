@@ -1,39 +1,66 @@
 import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-import '../../feature/auth/data/datasource/auth_remote_datasource.dart';
-import '../../feature/auth/data/repositoryImpl/auth_repository_impl.dart';
-import '../../feature/auth/domain/repository/auth_repository.dart';
-import '../../feature/auth/domain/usecase/login_usecase.dart';
-import '../../feature/auth/presentation/viewmodel/login_block.dart';
-import '../config/dio_client.dart';
-import '../storage/shared_prefs.dart';
-import '../storage/token_storage.dart';
+import '../../feature/auth/data/datasource/location_local_data_source.dart';
+import '../../feature/auth/data/datasource/location_remote_data_source.dart';
+import '../../feature/auth/data/repositoryImpl/location_repository_impl.dart';
+import '../../feature/auth/domain/repository/location_repository.dart';
+import '../../feature/auth/domain/usecase/get_current_location_usecase.dart';
+import '../../feature/auth/domain/usecase/start_tracking_usecase.dart';
+import '../../feature/auth/domain/usecase/stop_tracking_usecase.dart';
+import '../../feature/auth/presentation/block/location_tracking_bloc.dart';
+import '../helper/database_helper.dart';
+import '../network/network_info.dart';
+import '../services/background_service.dart';
+import '../services/permission_service.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
+
+  // Core
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+
+  // Services
+  sl.registerLazySingleton(() => PermissionService());
+  sl.registerLazySingleton(() => BackgroundService());
+
   // ১. External (এরা কারো ওপর নির্ভরশীল নয়)
   sl.registerLazySingleton(() => Dio());
-  sl.registerLazySingleton(() => const FlutterSecureStorage());
+  sl.registerLazySingleton(() => InternetConnectionChecker());
+  sl.registerLazySingleton(() => DatabaseHelper());
 
-  // ২. Core / Network Clients (এরা External-এর ওপর নির্ভরশীল)
-  // এখানে DioClient রেজিস্টার করা নিশ্চিত করুন এবং sl() দিয়ে Dio পাস করুন
-  sl.registerLazySingleton(() => DioClient(sl()));
+  // Data Sources
+  sl.registerLazySingleton<LocationLocalDataSource>(
+        () => LocationLocalDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<LocationRemoteDataSource>(
+        () => LocationRemoteDataSourceImpl(sl()),
+  );
 
-  // ৩. Data Layer (এরা Network বা Storage এর ওপর নির্ভরশীল)
-  sl.registerLazySingleton<TokenStorage>(() => SharedPref(sl()));
+  // Repository
+  sl.registerLazySingleton<LocationRepository>(() => LocationRepositoryImpl(
+    localDataSource: sl(),
+    remoteDataSource: sl(),
+    networkInfo: sl(),
+    permissionService: sl(),
+    backgroundService: sl(),
+  ));
 
-  // এখানে AuthRemoteDataSource-এর ভেতর DioClient চলে যাবে sl() এর মাধ্যমে
-  sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSource(sl()));
+  // Use Cases
+  sl.registerLazySingleton(() => StartTrackingUseCase(sl()));
+  sl.registerLazySingleton(() => StopTrackingUseCase(sl()));
+  sl.registerLazySingleton(() => GetCurrentLocationUseCase(sl()));
 
-  // Repo-এর ভেতর RemoteDataSource এবং TokenStorage যাবে
-  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl(), sl()));
+  // BLoC
+  sl.registerFactory(() => LocationTrackingBloc(
+    startTrackingUseCase: sl(),
+    stopTrackingUseCase: sl(),
+    getCurrentLocationUseCase: sl(),
+    locationRepository: sl(),
+  ));
 
-  // ৪. Domain Layer
-  sl.registerLazySingleton(() => LoginUseCase(sl()));
-
-  // ৫. Presentation Layer (Bloc)
-  sl.registerFactory(() => LoginBloc(loginUseCase: sl()));
+  // Initialize background service
+  await sl<BackgroundService>().initialize();
 }

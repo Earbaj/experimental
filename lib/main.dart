@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:untitled1/router.dart';
+import 'package:workmanager/workmanager.dart';
 import 'core/di/injectProvider.dart';
 
 import 'methode_channel_service.dart';
@@ -12,6 +13,14 @@ void main() async  {
 
   // ADD THIS: GetIt ডিপেন্ডেন্সি ইনজেকশন কন্টেইনার চালু করা
   await init();
+
+  // Initialize WorkManager
+  await Workmanager().initialize(
+        (task, inputData) async {
+      // Background task handler
+      return Future.value(true);
+    },
+  );
 
   runApp(const MyApp());
 }
