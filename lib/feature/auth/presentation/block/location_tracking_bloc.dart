@@ -4,9 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entity/location_entity.dart';
 import '../../domain/repository/location_repository.dart';
+import '../../domain/usecase/check_location_permission_usecase.dart';
 import '../../domain/usecase/get_current_location_usecase.dart';
+import '../../domain/usecase/get_location_stream_usecase.dart';
+import '../../domain/usecase/get_saved_locations_usecase.dart';
 import '../../domain/usecase/start_tracking_usecase.dart';
 import '../../domain/usecase/stop_tracking_usecase.dart';
+import '../../domain/usecase/sync_offline_locations_usecase.dart';
 import '../event/location_tracking_event.dart';
 import '../state/location_tracking_state.dart';
 
@@ -14,7 +18,10 @@ class LocationTrackingBloc extends Bloc<LocationTrackingEvent, LocationTrackingS
   final StartTrackingUseCase startTrackingUseCase;
   final StopTrackingUseCase stopTrackingUseCase;
   final GetCurrentLocationUseCase getCurrentLocationUseCase;
-  final LocationRepository locationRepository;
+  final GetLocationStreamUseCase getLocationStreamUseCase;
+  final SyncOfflineLocationsUseCase syncOfflineLocationsUseCase;
+  final GetSavedLocationsUseCase getSavedLocationsUseCase;
+  final CheckLocationPermissionUseCase checkPermissionUseCase;
 
   StreamSubscription<LocationEntity>? _locationSubscription;
 
@@ -22,7 +29,10 @@ class LocationTrackingBloc extends Bloc<LocationTrackingEvent, LocationTrackingS
     required this.startTrackingUseCase,
     required this.stopTrackingUseCase,
     required this.getCurrentLocationUseCase,
-    required this.locationRepository,
+    required this.getLocationStreamUseCase,
+    required this.syncOfflineLocationsUseCase,
+    required this.getSavedLocationsUseCase,
+    required this.checkPermissionUseCase,
   }) : super(TrackingInitial()) {
     on<StartTrackingEvent>(_onStartTracking);
     on<StopTrackingEvent>(_onStopTracking);
@@ -52,7 +62,7 @@ class LocationTrackingBloc extends Bloc<LocationTrackingEvent, LocationTrackingS
         if (success) {
           // Start listening to location stream
           _locationSubscription?.cancel();
-          _locationSubscription = locationRepository.getLocationStream().listen(
+          _locationSubscription = getLocationStreamUseCase().listen(
                 (location) {
               add(LocationUpdatedEvent(
                 latitude: location.latitude,
@@ -117,23 +127,62 @@ class LocationTrackingBloc extends Bloc<LocationTrackingEvent, LocationTrackingS
       SyncOfflineLocationsEvent event,
       Emitter<LocationTrackingState> emit,
       ) async {
-    try {
-      await locationRepository.syncOfflineLocations();
-      final savedLocations = await locationRepository.getSavedLocations();
-      emit(OfflineLocationsSynced(savedLocations.length));
-    } catch (e) {
-      emit(TrackingFailure(errorReason: e.toString()));
-    }
+    // লোডিং ইন্ডিকেটর দেখান (চাইলে)
+    emit(TrackingLoading());
+
+    // UseCase call করুন
+    final syncResult = await syncOfflineLocationsUseCase();
+
+    await syncResult.fold(
+          (failure) async {
+        // Failure হলে error state
+        emit(TrackingFailure(errorReason: failure.message));
+      },
+          (syncedCount) async {
+        // Success হলে saved locations count দেখান
+        emit(OfflineLocationsSynced(syncedCount));
+
+        // অথবা চাইলে পুরো লোকেশন লিস্ট দেখাতে পারেন
+        final locationsResult = await getSavedLocationsUseCase();
+
+        locationsResult.fold(
+              (failure) {
+            // লোকেশন পেতে ব্যর্থ হলে শুধু count দেখান
+            print('Failed to get locations: ${failure.message}');
+          },
+              (locations) {
+            // পুরো লোকেশন লিস্ট পেলে সেটাও emit করতে পারেন
+            print('Total saved locations: ${locations.length}');
+          },
+        );
+      },
+    );
   }
 
   Future<void> _onCheckPermission(
       CheckPermissionEvent event,
       Emitter<LocationTrackingState> emit,
       ) async {
-    final hasPermission = await locationRepository.checkAndRequestPermission();
-    if (!hasPermission) {
-      emit(PermissionDenied('Location permission is required for tracking'));
-    }
+    // লোডিং স্টেট (চাইলে)
+    emit(PermissionChecking());
+
+    // UseCase call
+    final result = await checkPermissionUseCase();
+
+    result.fold(
+          (failure) {
+        // এরর হলে
+        emit(PermissionDenied(failure.message));
+      },
+          (hasPermission) {
+        if (!hasPermission) {
+          emit(PermissionDenied('Location permission is required for tracking'));
+        } else {
+          // permission থাকলে সাকসেস স্টেট
+          emit(PermissionGranted());
+        }
+      },
+    );
   }
 
   @override

@@ -64,3 +64,12 @@ class OfflineLocationsSynced extends LocationTrackingState {
   @override
   List<Object?> get props => [syncedCount];
 }
+
+
+class PermissionChecking extends LocationTrackingState {
+  const PermissionChecking();
+}
+
+class PermissionGranted extends LocationTrackingState {
+  const PermissionGranted();
+}

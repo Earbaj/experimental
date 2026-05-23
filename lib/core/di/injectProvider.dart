@@ -1,6 +1,10 @@
 import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:untitled1/feature/auth/domain/usecase/check_location_permission_usecase.dart';
+import 'package:untitled1/feature/auth/domain/usecase/get_location_stream_usecase.dart';
+import 'package:untitled1/feature/auth/domain/usecase/get_saved_locations_usecase.dart';
+import 'package:untitled1/feature/auth/domain/usecase/sync_offline_locations_usecase.dart';
 
 import '../../feature/auth/data/datasource/location_local_data_source.dart';
 import '../../feature/auth/data/datasource/location_remote_data_source.dart';
@@ -52,13 +56,21 @@ Future<void> init() async {
   sl.registerLazySingleton(() => StartTrackingUseCase(sl()));
   sl.registerLazySingleton(() => StopTrackingUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentLocationUseCase(sl()));
+  sl.registerLazySingleton(() => GetLocationStreamUseCase(sl()));
+  sl.registerLazySingleton(() => SyncOfflineLocationsUseCase(sl()));
+  sl.registerLazySingleton(() => GetSavedLocationsUseCase(sl()));
+  sl.registerLazySingleton(() => CheckLocationPermissionUseCase(sl()));
 
   // BLoC
   sl.registerFactory(() => LocationTrackingBloc(
     startTrackingUseCase: sl(),
     stopTrackingUseCase: sl(),
     getCurrentLocationUseCase: sl(),
-    locationRepository: sl(),
+    getLocationStreamUseCase: sl(),
+    syncOfflineLocationsUseCase: sl(),
+    getSavedLocationsUseCase: sl(),
+    checkPermissionUseCase: sl(),
+
   ));
 
   // Initialize background service
