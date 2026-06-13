@@ -20,16 +20,27 @@ class PostModel {
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
-    final reactions = json['reactions'] as Map<String, dynamic>? ?? {};
+    final reactions = json['reactions'];
+    int parsedLikes = 0;
+    int parsedDislikes = 0;
+
+    if (reactions is Map) {
+      parsedLikes = reactions['likes'] as int? ?? 0;
+      parsedDislikes = reactions['dislikes'] as int? ?? 0;
+    }
+
     return PostModel(
-      id: json['id'] ?? 0,
-      title: json['title'] ?? '',
-      body: json['body'] ?? '',
-      tags: List<String>.from(json['tags'] ?? []),
-      likes: reactions['likes'] ?? 0,
-      dislikes: reactions['dislikes'] ?? 0,
-      views: json['views'] ?? 0,
-      userId: json['userId'] ?? 0,
+      id: json['id'] as int? ?? 0,
+      // Using .toString() forces any structural data type into a safe String representation
+      title: json['title']?.toString() ?? '',
+      body: json['body']?.toString() ?? '',
+      tags: (json['tags'] as List? ?? [])
+          .map((tag) => tag.toString())
+          .toList(),
+      likes: parsedLikes,
+      dislikes: parsedDislikes,
+      views: json['views'] as int? ?? 0,
+      userId: json['userId'] as int? ?? 0,
     );
   }
 }

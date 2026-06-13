@@ -15,13 +15,31 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
 
   @override
   Future<PostResponseModel> fetchPosts({required int limit, required int skip}) async {
+    try {
+      final response = await client.dio.get(
+        'https://dummyjson.com/posts?limit=$limit&skip=$skip',
+      );
 
-    final response = await client.dio.get('https://dummyjson.com/posts?limit=$limit&skip=$skip');
+      if (response.statusCode == 200) {
+        // 💡 DIO ALREADY PARSED THIS! response.data is a Map<String, dynamic>
+        final data = response.data;
 
-    if (response.statusCode == 200) {
-      return PostResponseModel.fromJson(jsonDecode(response.data));
-    } else {
-      throw Exception('Failed to load posts from server');
+        if (data is Map<String, dynamic>) {
+          return PostResponseModel.fromJson(data);
+        } else {
+          throw Exception('Expected Map from Dio but got: ${data.runtimeType}');
+        }
+      } else {
+        throw Exception('Failed to load posts from server: Status ${response.statusCode}');
+      }
+    } catch (error, stackTrace) {
+      print("============== 🚨 DETAILED REPO/DIO ERROR 🚨 ==============");
+      print("Exception Message: $error");
+      print("------------------------------------------------------------");
+      print("Stack Trace:");
+      print(stackTrace.toString());
+      print("=============================================================");
+      rethrow;
     }
   }
 }

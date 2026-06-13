@@ -15,7 +15,9 @@ class PostResponseModel {
 
   factory PostResponseModel.fromJson(Map<String, dynamic> json) {
     return PostResponseModel(
-      posts: (json['posts'] as List).map((e) => PostModel.fromJson(e)).toList(),
+      posts: (json['posts'] as List? ?? [])
+          .map((e) => PostModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
       total: json['total'] ?? 0,
       skip: json['skip'] ?? 0,
       limit: json['limit'] ?? 0,
