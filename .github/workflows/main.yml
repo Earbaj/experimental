@@ -24,10 +24,15 @@ jobs:
       # - uses: dart-lang/setup-dart@v1
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.16.0'
+          flutter-version: '3.27.3'
           channel: 'stable'
           cache: true                    # ← এই লাইনটা যোগ করুন
-
+      - name: Verify SDK versions
+        run: |
+          echo "Flutter version:"
+          flutter --version
+          echo "Dart version:"
+          dart --version
       - name: Install dependencies
         run: flutter pub get
 
