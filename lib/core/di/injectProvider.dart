@@ -2,6 +2,11 @@ import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../feature/auth/data/datasource/post_remote_data_source.dart';
+import '../../feature/auth/data/repositoryImpl/post_repository_impl.dart';
+import '../../feature/auth/domain/repository/post_repository.dart';
+import '../../feature/auth/domain/usecase/get_posts_usecase.dart';
+import '../../feature/auth/presentation/block/post_bloc.dart';
 import '../config/dio_client.dart';
 
 final sl = GetIt.instance;
@@ -15,14 +20,16 @@ Future<void> init() async {
   // এখানে DioClient রেজিস্টার করা নিশ্চিত করুন এবং sl() দিয়ে Dio পাস করুন
   sl.registerLazySingleton(() => DioClient(sl()));
 
-  // ৩. Data Layer (এরা Network বা Storage এর ওপর নির্ভরশীল)
+  // Repositories
+  sl.registerLazySingleton<PostRepository>(() => PostRepositoryImpl(sl()));
 
-  // এখানে AuthRemoteDataSource-এর ভেতর DioClient চলে যাবে sl() এর মাধ্যমে
+  // Use Cases
+  sl.registerLazySingleton(() => GetPostsUseCase(sl()));
 
-  // Repo-এর ভেতর RemoteDataSource এবং TokenStorage যাবে
+  // Data Sources
+  sl.registerLazySingleton<PostRemoteDataSource>(() => PostRemoteDataSourceImpl(sl()));
 
-  // ৪. Domain Layer
-
-  // ৫. Presentation Layer (Bloc)
+  // BLoC / Presentation Layer
+  sl.registerFactory(() => PostBloc(sl()));
 
 }
