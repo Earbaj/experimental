@@ -59,7 +59,6 @@ class _HomePageState extends State<HomePage> {
             ElevatedButton(
               onPressed: () async {
                 String battery = await NativeService.getBatteryPercentage();
-                print(battery);
               },
               child: Text("Get Battery"),
             )

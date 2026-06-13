@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:untitled1/core/config/dio_client.dart';
 
@@ -33,12 +34,12 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
         throw Exception('Failed to load posts from server: Status ${response.statusCode}');
       }
     } catch (error, stackTrace) {
-      print("============== 🚨 DETAILED REPO/DIO ERROR 🚨 ==============");
-      print("Exception Message: $error");
-      print("------------------------------------------------------------");
-      print("Stack Trace:");
-      print(stackTrace.toString());
-      print("=============================================================");
+      log("============== 🚨 DETAILED REPO/DIO ERROR 🚨 ==============");
+      log("Exception Message: $error");
+      log("------------------------------------------------------------");
+      log("Stack Trace:");
+      log(stackTrace.toString());
+      log("=============================================================");
       rethrow;
     }
   }
