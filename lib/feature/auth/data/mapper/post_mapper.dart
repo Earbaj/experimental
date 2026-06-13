@@ -19,8 +19,8 @@ class PostMapper {
       title: model.title,
       body: model.body,
       tags: model.tags,
-      likes: model.likes,
-      dislikes: model.dislikes,
+      likes: model.reactions?.likes ?? 0,
+      dislikes: model.reactions?.dislikes ?? 0,
       views: model.views,
       userId: model.userId,
     );

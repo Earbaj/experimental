@@ -1,26 +1,19 @@
-import 'package:untitled1/feature/auth/data/model/post_model.dart';
 
-class PostResponseModel {
-  final List<PostModel> posts;
-  final int total;
-  final int skip;
-  final int limit;
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'post_model.dart';
 
-  PostResponseModel({
-    required this.posts,
-    required this.total,
-    required this.skip,
-    required this.limit,
-  });
+part 'post_response_model.freezed.dart';
+part 'post_response_model.g.dart';
 
-  factory PostResponseModel.fromJson(Map<String, dynamic> json) {
-    return PostResponseModel(
-      posts: (json['posts'] as List? ?? [])
-          .map((e) => PostModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      total: json['total'] ?? 0,
-      skip: json['skip'] ?? 0,
-      limit: json['limit'] ?? 0,
-    );
-  }
+@freezed
+class PostResponseModel with _$PostResponseModel {
+  const factory PostResponseModel({
+    @Default([]) List<PostModel> posts,
+    @Default(0) int total,
+    @Default(0) int skip,
+    @Default(0) int limit,
+  }) = _PostResponseModel;
+
+  factory PostResponseModel.fromJson(Map<String, dynamic> json) =>
+      _$PostResponseModelFromJson(json);
 }
