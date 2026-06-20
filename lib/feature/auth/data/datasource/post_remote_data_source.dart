@@ -8,6 +8,7 @@ import '../model/post_response_model.dart';
 
 abstract class PostRemoteDataSource {
   Future<PostResponseModel> fetchPosts({required int limit, required int skip});
+  Future<bool> addPost({required String title, required int userId});
 }
 
 class PostRemoteDataSourceImpl implements PostRemoteDataSource {
@@ -30,6 +31,33 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
         } else {
           throw Exception('Expected Map from Dio but got: ${data.runtimeType}');
         }
+      } else {
+        throw Exception('Failed to load posts from server: Status ${response.statusCode}');
+      }
+    } catch (error, stackTrace) {
+      log("============== 🚨 DETAILED REPO/DIO ERROR 🚨 ==============");
+      log("Exception Message: $error");
+      log("------------------------------------------------------------");
+      log("Stack Trace:");
+      log(stackTrace.toString());
+      log("=============================================================");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<bool> addPost({required String title, required int userId}) async {
+    try {
+      final response = await client.dio.post(
+        'https://dummyjson.com/posts/add',
+        data: {
+          'title': title,
+          'userId': userId,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
       } else {
         throw Exception('Failed to load posts from server: Status ${response.statusCode}');
       }

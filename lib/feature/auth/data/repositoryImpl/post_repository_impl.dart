@@ -21,4 +21,14 @@ class PostRepositoryImpl implements PostRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> addPost({required String title, required int userId}) async {
+    try {
+      final remoteData = await remoteDataSource.addPost(title: title, userId: userId);
+      return Right(remoteData);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }
