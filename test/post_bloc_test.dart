@@ -86,6 +86,41 @@ void main() {
       },
     );
 
+    // 🎯 নতুন টেস্ট কেস: পেজ ২ বা পরবর্তী পেজের ডাটা লোড হওয়া (Pagination Test)
+    blocTest<PostBloc, PostState>(
+      'should APPEND new posts to existing posts when fetching subsequent pages',
+      build: () {
+        when(() => mockGetPostsUseCase(any()))
+            .thenAnswer((_) async => Right(tPostResponseEntity)); // এটিও ১০টা নতুন পোস্ট দেবে
+        return postBloc;
+      },
+      // 💡 আসল ট্রিক: আমরা টেস্ট ইঞ্জিনকে বলছি, ব্লকটা যখন শুরু হবে তখন তার পেটে অলরেডি ৫টি পুরনো পোস্ট আছে!
+      seed: () => PostState(
+        status: PostStatus.success,
+        posts: List.generate(5, (index) => PostEntity(id: 1, title: 'Test Title', body: 'Test Body', tags: [], likes: 0, dislikes: 0, views: 0, userId: 1)), // ৫টি পুরনো পোস্ট
+        currentSkip: 5,
+      ),
+      act: (bloc) => bloc.add(FetchPostsEvent()),
+      expect: () => [
+       /* // প্রথম স্টেট: শুধু স্ট্যাটাস loading হবে, পুরনো ৫টি পোস্ট কিন্তু রয়ে যাবে!
+        PostState(
+          status: PostStatus.loading,
+          posts: List.generate(5, (index) => PostEntity(id: index, title: 'Test Title', body: 'Test Body', tags: [], likes: 0, dislikes: 0, views: 0, userId: 1)),
+          currentSkip: 5,
+        ),*/
+        // দ্বিতীয় স্টেট: নতুন ১০টি পোস্ট পুরনো ৫টির সাথে যোগ হয়ে মোট ১৫টি পোস্ট হতে হবে!
+        PostState(
+          status: PostStatus.success,
+          posts: [
+            ...List.generate(5, (index) => PostEntity(id: 1, title: 'Test Title', body: 'Test Body', tags: [], likes: 0, dislikes: 0, views: 0, userId: 1)), // পুরনো ৫টি
+            ...tPostsList, // নতুন ১০টি
+          ],
+          hasReachedMax: true,
+          currentSkip: 15, // ৫ + ১০
+        ),
+      ],
+    );
+
     // ৩. সার্ভার ফেইল করলে ফেইলুর স্টেট টেস্ট
     blocTest<PostBloc, PostState>(
       'should emit PostState with loading and then failure status when fetching data fails',
@@ -104,6 +139,20 @@ void main() {
           status: PostStatus.failure,
           errorMessage: 'Server Down',
         ),
+      ],
+    );
+    //টেস্ট কেস 4: ইন্টারনেট বা নেটওয়ার্ক এরর (নতুন যোগ করলে)
+    blocTest<PostBloc, PostState>(
+      'should emit failure with No Internet Connection message',
+      build: () {
+        when(() => mockGetPostsUseCase(any()))
+            .thenAnswer((_) async => const Left(NetworkFailure('No Internet Connection')));
+        return postBloc;
+      },
+      act: (bloc) => bloc.add(FetchPostsEvent()),
+      expect: () => [
+        const PostState(status: PostStatus.loading),
+        const PostState(status: PostStatus.failure, errorMessage: 'No Internet Connection'),
       ],
     );
   });
