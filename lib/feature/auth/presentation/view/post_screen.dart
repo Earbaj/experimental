@@ -5,6 +5,7 @@ import '../../../../core/di/injectProvider.dart';
 import '../block/post_bloc.dart';
 import '../event/post_event.dart';
 import '../state/post_state.dart';
+import 'add_post_screen.dart';
 
 class PostScreen extends StatelessWidget {
   const PostScreen({Key? key}) : super(key: key);
@@ -96,6 +97,17 @@ class _PostListViewState extends State<PostListView> {
               );
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // FAB প্রেস করলে AddPostScreen-এ নিয়ে যাবে
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddPostScreen()),
+          );
+        },
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
