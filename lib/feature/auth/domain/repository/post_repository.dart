@@ -5,4 +5,5 @@ import '../../../../core/error/failure.dart';
 
 abstract class PostRepository {
   Future<Either<Failure, PostResponseEntity>> getPosts({required int limit, required int skip});
+  Future<Either<Failure, bool>> addPost({required String title, required int userId});
 }
