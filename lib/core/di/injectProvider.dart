@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:untitled1/feature/auth/domain/usecase/add_post_usecase.dart';
+import 'package:untitled1/feature/auth/presentation/block/add_post_block.dart';
 
 import '../../feature/auth/data/datasource/post_remote_data_source.dart';
 import '../../feature/auth/data/repositoryImpl/post_repository_impl.dart';
@@ -25,11 +27,13 @@ Future<void> init() async {
 
   // Use Cases
   sl.registerLazySingleton(() => GetPostsUseCase(sl()));
+  sl.registerLazySingleton(() => AddPostUseCase(sl()));
 
   // Data Sources
   sl.registerLazySingleton<PostRemoteDataSource>(() => PostRemoteDataSourceImpl(sl()));
 
   // BLoC / Presentation Layer
   sl.registerFactory(() => PostBloc(sl()));
+  sl.registerFactory(() => AddPostBloc(addPostUseCase: sl()));
 
 }

@@ -4,10 +4,10 @@ import '../../domain/usecase/add_post_usecase.dart';
 import '../event/add_post_event.dart';
 import '../state/add_post_state.dart';
 
-class PostBloc extends Bloc<PostEvent, PostState> {
+class AddPostBloc extends Bloc<PostEvent, PostState> {
   final AddPostUseCase addPostUseCase;
 
-  PostBloc({required this.addPostUseCase}) : super(PostInitial()) {
+  AddPostBloc({required this.addPostUseCase}) : super(PostInitial()) {
 
     on<SubmitPostEvent>((event, emit) async {
       emit(PostLoading()); // Loading state dekhachhi
