@@ -31,7 +31,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         appBar: AppBar(
           title: const Text('Create New Post'),
         ),
-        body: BlocConsumer<AddPostBloc, PostState>(
+        body: BlocConsumer<AddPostBloc, AddPostState>(
           listener: (context, state) {
             if (state is PostSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(

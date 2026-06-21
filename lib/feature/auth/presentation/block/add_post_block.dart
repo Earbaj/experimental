@@ -4,7 +4,7 @@ import '../../domain/usecase/add_post_usecase.dart';
 import '../event/add_post_event.dart';
 import '../state/add_post_state.dart';
 
-class AddPostBloc extends Bloc<PostEvent, PostState> {
+class AddPostBloc extends Bloc<PostEvent, AddPostState> {
   final AddPostUseCase addPostUseCase;
 
   AddPostBloc({required this.addPostUseCase}) : super(PostInitial()) {
