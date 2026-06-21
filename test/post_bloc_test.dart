@@ -11,6 +11,13 @@ import 'package:untitled1/feature/auth/presentation/block/post_bloc.dart';
 import 'package:untitled1/feature/auth/presentation/event/post_event.dart';
 import 'package:untitled1/feature/auth/presentation/state/post_state.dart';
 
+
+/*Single Class Approach (PostState(status: ...)):
+যখন স্ক্রিনে অনেক ডাটা একসাথে থাকে এবং একটা অ্যাকশনের কারণে পুরো স্ক্রিনের ডাটা আপনি মুছে ফেলতে
+চান না। যেমন: লিস্টে অলরেডি ১০টা ডাটা আছে, আপনি আরও ডাটা লোড করছেন—তখন আগের ১০টা ডাটা স্ক্রিনে
+রেখেই কোণায় একটা ছোট লোডিং দেখাতে চান। (উদাহরণ: Feed/List Fetching, Pagination,
+Search, Shopping Cart)।*/
+
 // UseCase মক করার জন্য ক্লাস
 class MockGetPostsUseCase extends Mock implements GetPostsUseCase {}
 

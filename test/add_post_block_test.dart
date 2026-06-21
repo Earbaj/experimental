@@ -10,6 +10,13 @@ import 'package:untitled1/feature/auth/presentation/block/add_post_block.dart';
 import 'package:untitled1/feature/auth/presentation/event/add_post_event.dart';
 import 'package:untitled1/feature/auth/presentation/state/add_post_state.dart';
 
+
+/*Multi-Class Approach (isA<PostSuccess>()):
+যখন ফ্লো-টা একদম সরল এবং একমুখী। যেমন: বাটন চাপলাম ➡️ লোডিং হলো ➡️ হয় সাকসেস (True/False) হলো,
+না হয় ফেইল হলো। এখানে আগের কোনো ডাটা স্ক্রিনে ধরে রাখার চিন্তা নেই।
+(উদাহরণ: Login, Sign Up, Add Post, Delete Item, Password Reset)।
+*/
+
 // 🎯 UseCase কে মক (Mock) করার জন্য Mock class তৈরি
 class MockAddPostUseCase extends Mock implements AddPostUseCase {}
 
