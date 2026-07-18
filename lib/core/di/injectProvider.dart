@@ -1,39 +1,81 @@
-import 'package:get_it/get_it.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:untitled1/feature/auth/domain/usecase/add_post_usecase.dart';
-import 'package:untitled1/feature/auth/presentation/block/add_post_block.dart';
 
+// Import your custom files
+import '../../feature/auth/presentation/state/add_post_state.dart';
+import '../../feature/auth/presentation/state/post_state.dart';
+import '../../feature/auth/presentation/viewmodel/add_post_viewmodel.dart';
+import '../../feature/auth/presentation/viewmodel/post_viewmodel.dart';
+import '../config/dio_client.dart';
 import '../../feature/auth/data/datasource/post_remote_data_source.dart';
 import '../../feature/auth/data/repositoryImpl/post_repository_impl.dart';
 import '../../feature/auth/domain/repository/post_repository.dart';
+import '../../feature/auth/domain/usecase/add_post_usecase.dart';
 import '../../feature/auth/domain/usecase/get_posts_usecase.dart';
-import '../../feature/auth/presentation/block/post_bloc.dart';
-import '../config/dio_client.dart';
 
-final sl = GetIt.instance;
+// ==========================================
+// ১. External (GetIt-এর LazySingleton এর বিকল্প)
+// ==========================================
+final dioProvider = Provider<Dio>((ref) {
+  return Dio();
+});
 
-Future<void> init() async {
-  // ১. External (এরা কারো ওপর নির্ভরশীল নয়)
-  sl.registerLazySingleton(() => Dio());
-  sl.registerLazySingleton(() => const FlutterSecureStorage());
+final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
+  return const FlutterSecureStorage();
+});
 
-  // ২. Core / Network Clients (এরা External-এর ওপর নির্ভরশীল)
-  // এখানে DioClient রেজিস্টার করা নিশ্চিত করুন এবং sl() দিয়ে Dio পাস করুন
-  sl.registerLazySingleton(() => DioClient(sl()));
+// ==========================================
+// ২. Core / Network Clients
+// ==========================================
+final dioClientProvider = Provider<DioClient>((ref) {
+  // sl() এর জায়গায় ref.watch() দিয়ে ডিপেন্ডেন্সি পাস করছি
+  final dio = ref.watch(dioProvider);
+  return DioClient(dio);
+});
 
-  // Repositories
-  sl.registerLazySingleton<PostRepository>(() => PostRepositoryImpl(sl()));
+// ==========================================
+// ৩. Data Sources
+// ==========================================
+final postRemoteDataSourceProvider = Provider<PostRemoteDataSource>((ref) {
+  final dioClient = ref.watch(dioClientProvider);
+  return PostRemoteDataSourceImpl(dioClient);
+});
 
-  // Use Cases
-  sl.registerLazySingleton(() => GetPostsUseCase(sl()));
-  sl.registerLazySingleton(() => AddPostUseCase(sl()));
+// ==========================================
+// ৪. Repositories
+// ==========================================
+final postRepositoryProvider = Provider<PostRepository>((ref) {
+  final remoteDataSource = ref.watch(postRemoteDataSourceProvider);
+  return PostRepositoryImpl(remoteDataSource);
+});
 
-  // Data Sources
-  sl.registerLazySingleton<PostRemoteDataSource>(() => PostRemoteDataSourceImpl(sl()));
+// ==========================================
+// ৫. Use Cases
+// ==========================================
+final getPostsUseCaseProvider = Provider<GetPostsUseCase>((ref) {
+  final repository = ref.watch(postRepositoryProvider);
+  return GetPostsUseCase(repository);
+});
 
-  // BLoC / Presentation Layer
-  sl.registerFactory(() => PostBloc(sl()));
-  sl.registerFactory(() => AddPostBloc(addPostUseCase: sl()));
+final addPostUseCaseProvider = Provider<AddPostUseCase>((ref) {
+  final repository = ref.watch(postRepositoryProvider);
+  return AddPostUseCase(repository);
+});
 
-}
+// ==========================================
+// ৬. Presentation Layer / ViewModel (Factory-র বিকল্প)
+// ==========================================
+// StateNotifierProvider নিজে থেকেই ফ্যাক্টরির মতো কাজ করে, UI যখনই এটি রিড করবে, স্টেট অনুযায়ী আপডেট করবে।
+final addPostViewModelProvider = StateNotifierProvider<AddPostViewModel, AddPostState>((ref) {
+  final addPostUseCase = ref.watch(addPostUseCaseProvider);
+  return AddPostViewModel(addPostUseCase: addPostUseCase);
+});
+
+
+// 7. for post viewmodel
+final postViewModelProvider = StateNotifierProvider<PostViewModel, PostState>((ref) {
+  final getPostsUseCase = ref.watch(getPostsUseCaseProvider); // di_provider থেকে আসছে
+  return PostViewModel(getPostsUseCase: getPostsUseCase);
+});

@@ -7,9 +7,6 @@ void main() async  {
   // ADD THIS: ফ্লাটার বাইন্ডিং নিশ্চিত করা (GetIt এবং অন্যান্য asynchronous কাজের জন্য)
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ADD THIS: GetIt ডিপেন্ডেন্সি ইনজেকশন কন্টেইনার চালু করা
-  await init();
-
   runApp(const MyApp());
 }
 

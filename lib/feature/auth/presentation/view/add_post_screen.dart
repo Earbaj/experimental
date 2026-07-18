@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Apnar dynamic files gulo import korben
 import '../../../../core/di/injectProvider.dart';
-import '../block/add_post_block.dart';
-import '../event/add_post_event.dart';
 import '../state/add_post_state.dart';
+// Jei DI file-e 'addPostViewModelProvider' create korechilen, sheta import korben
 
-class AddPostScreen extends StatefulWidget {
+class AddPostScreen extends ConsumerStatefulWidget {
   const AddPostScreen({super.key});
 
   @override
-  State<AddPostScreen> createState() => _AddPostScreenState();
+  ConsumerState<AddPostScreen> createState() => _AddPostScreenState();
 }
 
-class _AddPostScreenState extends State<AddPostScreen> {
+class _AddPostScreenState extends ConsumerState<AddPostScreen> {
   final TextEditingController _titleController = TextEditingController();
 
   @override
@@ -24,76 +24,72 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 🎯 এখানে BlocProvider দিয়ে র‍্যাপ করে দিলেন, ফলে স্ক্রিনটি বন্ধ হলে মেমরিও ফ্রী হয়ে যাবে
-    return BlocProvider(
-      create: (context) => sl<AddPostBloc>(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Create New Post'),
-        ),
-        body: BlocConsumer<AddPostBloc, AddPostState>(
-          listener: (context, state) {
-            if (state is PostSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Post added successfully!')),
-              );
-              Navigator.pop(context);
-            } else if (state is PostFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
-            }
-          },
-          builder: (context, state) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Post Title',
-                      border: OutlineInputBorder(),
-                      hintText: 'Enter your thoughts...',
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+    // 1. 🎯 BlocListener-er bodole ekhane ref.listen use korbo (Dialog, SnackBar, Navigation-er jonno)
+    ref.listen<AddPostState>(addPostViewModelProvider, (previous, next) {
+      if (next is PostSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post added successfully!')),
+        );
+        Navigator.pop(context);
+      } else if (next is PostFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.message)),
+        );
+      }
+    });
 
-                  state is PostLoading
-                      ? const CircularProgressIndicator()
-                      : SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                      onPressed: () {
-                        if (_titleController.text.isNotEmpty) {
-                          // 🚀 এখন এই context.read টি কোনো এরর ছাড়াই ব্লক খুঁজে পাবে
-                          context.read<AddPostBloc>().add(
-                            SubmitPostEvent(
-                              title: _titleController.text,
-                              userId: 5,
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a title')),
-                          );
-                        }
-                      },
-                      child: const Text(
-                        'Submit Post',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
+    // 2. 🎯 BlocBuilder-er bodole ekhane ref.watch use korbo (UI state read korar jonno)
+    final state = ref.watch(addPostViewModelProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Create New Post'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Post Title',
+                border: OutlineInputBorder(),
+                hintText: 'Enter your thoughts...',
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 24),
+
+            // Loading state check korchi
+            state is PostLoading
+                ? const CircularProgressIndicator()
+                : SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                ),
+                onPressed: () {
+                  if (_titleController.text.isNotEmpty) {
+                    // 🚀 context.read-er bodole direct ref.read diye ViewModel-er method call korchi
+                    ref.read(addPostViewModelProvider.notifier).submitPost(
+                      title: _titleController.text,
+                      userId: 5, // Apnar function-ti String type nicche state management onushare
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter a title')),
+                    );
+                  }
+                },
+                child: const Text(
+                  'Submit Post',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
