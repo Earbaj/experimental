@@ -3,17 +3,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-// Import your custom files
-import '../../feature/auth/presentation/state/add_post_state.dart';
-import '../../feature/auth/presentation/state/post_state.dart';
-import '../../feature/auth/presentation/viewmodel/add_post_viewmodel.dart';
-import '../../feature/auth/presentation/viewmodel/post_viewmodel.dart';
+import '../../feature/ageprediction/data/datasources/age_prediction_remote_datasource.dart';
+import '../../feature/ageprediction/data/repositories/age_prediction_repository_impl.dart';
+import '../../feature/ageprediction/domain/repositories/age_prediction_repository.dart';
+import '../../feature/ageprediction/domain/usecases/get_age_prediction_usecase.dart';
+import '../../feature/ageprediction/presentation/viewmodel/age_prediction_viewmodel.dart';
+import '../../feature/ageprediction/presentation/viewmodel/state/age_prediction_state.dart';
 import '../config/dio_client.dart';
-import '../../feature/auth/data/datasource/post_remote_data_source.dart';
-import '../../feature/auth/data/repositoryImpl/post_repository_impl.dart';
-import '../../feature/auth/domain/repository/post_repository.dart';
-import '../../feature/auth/domain/usecase/add_post_usecase.dart';
-import '../../feature/auth/domain/usecase/get_posts_usecase.dart';
+
 
 // ==========================================
 // ১. External (GetIt-এর LazySingleton এর বিকল্প)
@@ -38,44 +35,36 @@ final dioClientProvider = Provider<DioClient>((ref) {
 // ==========================================
 // ৩. Data Sources
 // ==========================================
-final postRemoteDataSourceProvider = Provider<PostRemoteDataSource>((ref) {
+final agePredictionRemoteDataSourceProvider =
+Provider<AgePredictionRemoteDataSource>((ref) {
   final dioClient = ref.watch(dioClientProvider);
-  return PostRemoteDataSourceImpl(dioClient);
+  return AgePredictionRemoteDataSourceImpl(dioClient);
 });
 
 // ==========================================
 // ৪. Repositories
 // ==========================================
-final postRepositoryProvider = Provider<PostRepository>((ref) {
-  final remoteDataSource = ref.watch(postRemoteDataSourceProvider);
-  return PostRepositoryImpl(remoteDataSource);
+final agePredictionRepositoryProvider = Provider<AgePredictionRepository>((ref) {
+  final remoteDataSource = ref.watch(agePredictionRemoteDataSourceProvider);
+  return AgePredictionRepositoryImpl(remoteDataSource);
 });
 
 // ==========================================
 // ৫. Use Cases
 // ==========================================
-final getPostsUseCaseProvider = Provider<GetPostsUseCase>((ref) {
-  final repository = ref.watch(postRepositoryProvider);
-  return GetPostsUseCase(repository);
-});
-
-final addPostUseCaseProvider = Provider<AddPostUseCase>((ref) {
-  final repository = ref.watch(postRepositoryProvider);
-  return AddPostUseCase(repository);
+final getAgePredictionUseCaseProvider = Provider<GetAgePredictionUseCase>((ref) {
+  final repository = ref.watch(agePredictionRepositoryProvider);
+  return GetAgePredictionUseCase(repository);
 });
 
 // ==========================================
 // ৬. Presentation Layer / ViewModel (Factory-র বিকল্প)
 // ==========================================
 // StateNotifierProvider নিজে থেকেই ফ্যাক্টরির মতো কাজ করে, UI যখনই এটি রিড করবে, স্টেট অনুযায়ী আপডেট করবে।
-final addPostViewModelProvider = StateNotifierProvider<AddPostViewModel, AddPostState>((ref) {
-  final addPostUseCase = ref.watch(addPostUseCaseProvider);
-  return AddPostViewModel(addPostUseCase: addPostUseCase);
-});
-
-
-// 7. for post viewmodel
-final postViewModelProvider = StateNotifierProvider<PostViewModel, PostState>((ref) {
-  final getPostsUseCase = ref.watch(getPostsUseCaseProvider); // di_provider থেকে আসছে
-  return PostViewModel(getPostsUseCase: getPostsUseCase);
+final agePredictionViewModelProvider =
+StateNotifierProvider<AgePredictionViewModel, AgePredictionState>((ref) {
+  final getAgePredictionUseCase = ref.watch(getAgePredictionUseCaseProvider);
+  return AgePredictionViewModel(
+    getAgePredictionUseCase: getAgePredictionUseCase,
+  );
 });

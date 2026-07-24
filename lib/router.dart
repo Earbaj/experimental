@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
 
-import 'feature/auth/presentation/view/post_screen.dart';
+import 'feature/ageprediction/presentation/view/age_prediction_view.dart';
 
 class RouteName{
   static const String home = 'home';
@@ -12,7 +12,7 @@ final GoRouter router = GoRouter(
      GoRoute(
        name: RouteName.home,
        path: '/',
-       builder: (context, state) => PostScreen()
+       builder: (context, state) => AgePredictionView()
      ),
    ]
 );
