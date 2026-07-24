@@ -11,6 +11,10 @@ class AgePredictionViewModel extends StateNotifier<AgePredictionState> {
   }) : super(AgePredictionState());
 
   void updateName(String name) {
+    // Clear error when user starts typing
+    if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+      state = state.copyWith(errorMessage: null);
+    }
     state = state.copyWith(name: name);
   }
 
@@ -24,7 +28,12 @@ class AgePredictionViewModel extends StateNotifier<AgePredictionState> {
       return;
     }
 
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    // Clear previous results and errors
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      agePrediction: null,
+    );
 
     try {
       final prediction = await getAgePredictionUseCase(
@@ -46,6 +55,22 @@ class AgePredictionViewModel extends StateNotifier<AgePredictionState> {
   }
 
   void clearError() {
-    state = state.copyWith(errorMessage: null);
+    // Clear error message while keeping other state
+    if (state.errorMessage != null) {
+      state = AgePredictionState(
+        isLoading: state.isLoading,
+        agePrediction: state.agePrediction,
+        errorMessage: null,
+        name: state.name,
+        countryId: state.countryId,
+      );
+    }
+  }
+
+  // Alternative: Reset entire state
+  void resetState() {
+    state = AgePredictionState();
+    // Also clear the text controller if you want
+    // This should be handled in the view
   }
 }

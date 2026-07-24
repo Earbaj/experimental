@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'package:dio/dio.dart';
-
 import '../../../../core/config/dio_client.dart';
 import '../model/age_prediction_model.dart';
 

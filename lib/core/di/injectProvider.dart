@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../feature/ageprediction/data/datasources/age_prediction_remote_datasource.dart';
 import '../../feature/ageprediction/data/repositories/age_prediction_repository_impl.dart';
@@ -19,9 +18,6 @@ final dioProvider = Provider<Dio>((ref) {
   return Dio();
 });
 
-final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
-  return const FlutterSecureStorage();
-});
 
 // ==========================================
 // ২. Core / Network Clients
