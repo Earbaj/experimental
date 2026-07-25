@@ -1,6 +1,8 @@
+import 'package:equatable/equatable.dart';
+
 import '../../../domain/entity/age_prediction.dart';
 
-class AgePredictionState {
+class AgePredictionState extends Equatable{
   final bool isLoading;
   final AgePrediction? agePrediction;
   final String? errorMessage;
@@ -30,4 +32,8 @@ class AgePredictionState {
       countryId: countryId ?? this.countryId,
     );
   }
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => [isLoading,agePrediction,errorMessage,name,countryId];
 }
