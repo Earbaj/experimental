@@ -49,7 +49,7 @@ dependencies:
   # Background Service
   flutter_background_service: ^5.0.4
   flutter_background_service_android: ^6.0.0
-  workmanager: ^0.5.1
+  workmanager: ^0.9.0+3
 
   # Networking
   dio: ^5.3.3
