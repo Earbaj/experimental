@@ -1,1 +1,0 @@
-// Dependency injection is handled by Riverpod providers in presentation/viewmodel/auth_providers.dart
